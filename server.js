@@ -1,18 +1,18 @@
-let express = require('express');
-let app = express();
-let bodyParser = require('body-parser');
-let morgan = require('morgan');
-let mongoose = require('mongoose');
-let port = process.env.PORT || 3000;
-const Deck = require('./app/models/deck');
-const Card = require('./app/models/card');
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const mongoose = require('mongoose');
+const port = process.env.PORT || 3000;
+const database = require('./config/database');
+const UsersRoute = require('./app/routes/usersRoute');
 
 // Connect to database
 let count = 0;
 mongoose.Promise = global.Promise;
 
 function connectDatabase() {
-  mongoose.connect('mongodb://localhost:27017/flashcard', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
+  mongoose.connect(database.url, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
     .then(() => {
       console.log('Connect to database successfully');
     })
@@ -26,57 +26,23 @@ connectDatabase();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
-app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization');
-  next();
-});
-
 app.use(morgan('dev'));
 
-app.get('/', function (req, res) {
-  res.send('Welcome to the home page!');
-});
+// Route api
 
-app.get('/test', function (req, res) {
-  // let deck = new Deck({
-  //   _id: new mongoose.Types.ObjectId(),
-  //   name: 'Test',
-  //   description: 'Some text here'
-  // });
+let apiRouter = express.Router();
 
-  // deck.save(function (err) {
-  //   if (err) {
-  //     throw err;
-  //   }
+require('./app/middlewares/setHeaders')(app);
+require('./app/routes/loginRoute')(apiRouter);
+UsersRoute.createUserRoute(apiRouter);
 
-  //   for (let i = 0; i < 3; i++) {
-  //     let card = new Card({
-  //       front: 'Go ' + i,
-  //       back: 'Some text here ' + i,
-  //       deck: deck._id
-  //     });
+require('./app/middlewares/authenticate')(apiRouter);
 
-  //     card.save(function (err1) {
-  //       if (err1) {
-  //         throw err1;
-  //       }
-  //     });
-  //   }
-  // });
+UsersRoute.manipulateUserRoute(apiRouter);
+require('./app/routes/decksRoute')(apiRouter);
+require('./app/routes/cardsRoute')(apiRouter);
 
-  Deck.findOne({ name: 'Test' }).populate('deck').exec(function (err, deck) {
-    if (err) {
-      throw err;
-    }
-
-    res.json(deck);
-  });
-});
-
-// Routing user
-var apiRouter = express.Router();
+app.use('/api', apiRouter);
 
 app.listen(port);
+console.log('App listening on port ' + port);

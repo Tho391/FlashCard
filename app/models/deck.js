@@ -1,27 +1,28 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const Card = require('./card');
+// const Card = require('./card');
 
 let deckSchema = new Schema({
-  _id: Schema.Types.ObjectId,
+  // _id: Schema.Types.ObjectId,
   name: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   description: String,
   private: {
     type: Boolean,
-    default: false
+    default: true
   },
   createdDate: {
     type: Date,
     default: Date.now
   },
-  cards: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Card'
-  }],
-  user: {
+  // cards: [{
+  //   type: Schema.Types.ObjectId,
+  //   ref: 'Card'
+  // }],
+  owner: {
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
@@ -30,5 +31,9 @@ let deckSchema = new Schema({
     ref: 'User'
   }
 });
+
+// deckSchema.virtual('totalCards').get(function() {
+//   return this.cards.length;
+// });
 
 module.exports = mongoose.model('Deck', deckSchema);
