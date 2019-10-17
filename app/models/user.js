@@ -4,7 +4,7 @@ const Deck = require('./deck');
 var bcrypt = require('bcrypt-nodejs');
 
 var userSchema = new Schema({
-  _id: Schema.Types.ObjectId,
+  // _id: Schema.Types.ObjectId,
   name: {
     type: String,
     required: true
@@ -36,24 +36,24 @@ var userSchema = new Schema({
   }]
 });
 
-// userSchema.pre('save', function (next) {
-//   var user = this;
-//   if (!user.isModified('password')) {
-//     return next();
-//   }
+userSchema.pre('save', function (next) {
+  var user = this;
+  if (!user.isModified('password')) {
+    return next();
+  }
 
-//   bcrypt.hash(user.password, null, null, function (error, hash) {
-//     if (error) {
-//       return next(error);
-//     }
-//     user.password = hash;
-//     next();
-//   });
-// });
+  bcrypt.hash(user.password, null, null, function (error, hash) {
+    if (error) {
+      return next(error);
+    }
+    user.password = hash;
+    next();
+  });
+});
 
-// userSchema.methods.comparePassword = function (password) {
-//   var user = this;
-//   return bcrypt.compareSync(password, user.password);
-// };
+userSchema.methods.comparePassword = function (password) {
+  var user = this;
+  return bcrypt.compareSync(password, user.password);
+};
 
 module.exports = mongoose.model('User', userSchema);
