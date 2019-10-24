@@ -29,6 +29,8 @@ var userSchema = new Schema({
   googleId: String,
   facebookId: String,
   facebookToken: String
+
+
 });
 
 userSchema.pre('save', function (next) {
