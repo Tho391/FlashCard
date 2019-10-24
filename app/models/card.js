@@ -5,7 +5,8 @@ const Deck = require('./deck');
 let cardSchema = new Schema({
   front: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   back: {
     type: String,

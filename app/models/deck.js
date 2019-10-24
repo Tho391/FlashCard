@@ -1,15 +1,14 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const Card = require('./card');
 
 let deckSchema = new Schema({
-  _id: Schema.Types.ObjectId,
   name: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   description: String,
-  private: {
+  public: {
     type: Boolean,
     default: false
   },
@@ -17,17 +16,17 @@ let deckSchema = new Schema({
     type: Date,
     default: Date.now
   },
-  cards: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Card'
-  }],
-  user: {
+  owner: {
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
   author: {
     type: Schema.Types.ObjectId,
     ref: 'User'
+  },
+  source: {
+    type: Schema.Types.ObjectId,
+    ref: 'Deck'
   }
 });
 
