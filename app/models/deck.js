@@ -1,27 +1,21 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-// const Card = require('./card');
 
 let deckSchema = new Schema({
-  // _id: Schema.Types.ObjectId,
   name: {
     type: String,
     required: true,
     unique: true
   },
   description: String,
-  private: {
+  public: {
     type: Boolean,
-    default: true
+    default: false
   },
   createdDate: {
     type: Date,
     default: Date.now
   },
-  // cards: [{
-  //   type: Schema.Types.ObjectId,
-  //   ref: 'Card'
-  // }],
   owner: {
     type: Schema.Types.ObjectId,
     ref: 'User'
@@ -29,11 +23,11 @@ let deckSchema = new Schema({
   author: {
     type: Schema.Types.ObjectId,
     ref: 'User'
+  },
+  source: {
+    type: Schema.Types.ObjectId,
+    ref: 'Deck'
   }
 });
-
-// deckSchema.virtual('totalCards').get(function() {
-//   return this.cards.length;
-// });
 
 module.exports = mongoose.model('Deck', deckSchema);

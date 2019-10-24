@@ -1,14 +1,14 @@
-const mongoose = require('mongoose');
-const SECRET = require('../../config/env').secret;
-const jwt = require('jsonwebtoken');
-const Deck = require('../models/deck');
 const Card = require('../models/card');
-const User = require('../models/user');
+const requireSameOwner = require('../middlewares/requireOwner');
+const requireAuthentication = require('../middlewares/requireAuthentication');
 
 module.exports = function (apiRouter) {
   apiRouter.route('/cards')
     // POST /api/cards
-    .post(function (req, res) {
+    .post([
+      requireAuthentication,
+      requireSameOwner
+    ], function (req, res) {
       let card = new Card({
         front: req.body.front,
         back: req.body.back,
@@ -36,7 +36,10 @@ module.exports = function (apiRouter) {
 
   apiRouter.route('/cards/:cardId')
     // GET /api/cards/:cardId
-    .get(function (req, res) {
+    .get([
+      requireAuthentication,
+      requireSameOwner
+    ], function (req, res) {
       Card.findById(req.params.cardId).populate('deck').exec(function (err, card) {
         if (err) {
           throw err;
@@ -46,8 +49,11 @@ module.exports = function (apiRouter) {
       });
     })
     // PUT /api/cards/:cardId
-    .put(function(req, res) {
-      Card.findById(req.params.cardId, function(err, card) {
+    .put([
+      requireAuthentication,
+      requireSameOwner
+    ], function (req, res) {
+      Card.findById(req.params.cardId, function (err, card) {
         if (err) {
           throw err;
         }
@@ -59,7 +65,7 @@ module.exports = function (apiRouter) {
           card.back = req.body.back;
         }
 
-        card.save(function(err) {
+        card.save(function (err) {
           if (err) {
             if (err.code == 11000) {
               return res.json({
@@ -79,8 +85,11 @@ module.exports = function (apiRouter) {
       });
     })
     // DELETE /api/cards/:cardId
-    .delete(function(req, res) {
-      Card.remove({ _id: req.params.cardId }, function(err) {
+    .delete([
+      requireAuthentication,
+      requireSameOwner
+    ], function (req, res) {
+      Card.remove({ _id: req.params.cardId }, function (err) {
         if (err) {
           throw err;
         }

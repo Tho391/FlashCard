@@ -1,22 +1,19 @@
-const mongoose = require('mongoose');
-const SECRET = require('../../config/env').secret;
-const jwt = require('jsonwebtoken');
 const Deck = require('../models/deck');
 const Card = require('../models/card');
 const User = require('../models/user');
-const SamePersonMiddleware = require('../middlewares/samePerson');
+const requireSameOwner = require('../middlewares/requireOwner');
+const requireAuthentication = require('../middlewares/requireAuthentication');
 
 module.exports = function (apiRouter) {
   apiRouter.route('/decks')
     // POST /api/decks
-    .post(function (req, res) {
-      User.findOne({ username: req.decoded.username }, function (err, user) {
+    .post([requireAuthentication], function (req, res) {
+      User.findById(req.user._id, function (err, user) {
         if (err) {
           throw err;
         }
 
         let deck = new Deck({
-          // _id: new mongoose.Types.ObjectId(),
           name: req.body.name,
           description: req.body.description,
           owner: user._id,
@@ -44,8 +41,11 @@ module.exports = function (apiRouter) {
       });
     })
     // GET /api/decks
-    .get(function (req, res) {
-      Deck.find({}).lean().exec(async function (err, decks) {
+    .get([
+      requireAuthentication,
+      requireSameOwner
+    ], function (req, res) {
+      Deck.find({ owner: req.user._id }).lean().exec(async function (err, decks) {
         if (err) {
           throw err;
         }
@@ -60,7 +60,10 @@ module.exports = function (apiRouter) {
 
   apiRouter.route('/decks/:deckId')
     // GET /api/decks/:deckId
-    .get(SamePersonMiddleware, function (req, res) {
+    .get([
+      requireAuthentication,
+      requireSameOwner
+    ], function (req, res) {
       Deck.findById(req.params.deckId).lean().exec(async function (err, deck) {
         if (err) {
           throw err;
@@ -74,7 +77,10 @@ module.exports = function (apiRouter) {
       });
     })
     // PUT /api/decks/:deckId
-    .put(SamePersonMiddleware ,function (req, res) {
+    .put([
+      requireAuthentication,
+      requireSameOwner
+    ], function (req, res) {
       Deck.findById(req.params.deckId, function (err, deck) {
         if (err) {
           throw err;
@@ -85,9 +91,6 @@ module.exports = function (apiRouter) {
         }
         if (req.body.description) {
           deck.description = req.body.description;
-        }
-        if (req.body.private) {
-          deck.private = req.body.private;
         }
 
         deck.save(function (err) {
@@ -110,7 +113,10 @@ module.exports = function (apiRouter) {
       });
     })
     // DELETE /api/decks/:deckId
-    .delete(SamePersonMiddleware, function (req, res) {
+    .delete([
+      requireAuthentication,
+      requireSameOwner
+    ], function (req, res) {
       Deck.remove({ _id: req.params.deckId }, function (err) {
         if (err) {
           throw err;

@@ -1,12 +1,33 @@
-const mongoose = require('mongoose');
 const User = require('../models/user');
+const requireAuthentication = require('../middlewares/requireAuthentication');
+const requireAdminPermission = require('../middlewares/requireAdminPermission');
+const requireVariousPerson = require('../middlewares/requireVariousPerson');
+const requireSamePerson = require('../middlewares/requireSamePerson');
 
-module.exports.createUserRoute = function (apiRouter) {
+module.exports = function (apiRouter) {
+  apiRouter.get('/', [requireAuthentication], function (req, res) {
+    res.json({ message: 'Hooray! Welcome to our api!' });
+  });
+
   apiRouter.route('/users')
+    // GET /api/users
+    .get([
+      requireAuthentication,
+      requireAdminPermission
+    ], function (req, res) {
+      User.find(function (error, users) {
+        if (error) {
+          return res.send(error);
+        }
+        res.json(users);
+      });
+    })
     // POST /api/users
-    .post(function (req, res) {
+    .post([
+      requireAuthentication,
+      requireAdminPermission
+    ], function (req, res) {
       let user = new User();
-      // user._id = new mongoose.Types.ObjectId();
       user.name = req.body.name;
       user.username = req.body.username;
       user.password = req.body.password;
@@ -29,37 +50,26 @@ module.exports.createUserRoute = function (apiRouter) {
         });
       });
     })
-};
 
-module.exports.manipulateUserRoute = function (apiRouter) {
-  apiRouter.get('/', function (req, res) {
-    res.json({ message: 'Hooray! Welcome to our api!' });
-  });
-
-  apiRouter.route('/users')
-    // GET /api/users
-    .get(function (req, res) {
-      User.find(function (error, users) {
-        if (error) {
-          return res.send(error);
-        }
-        res.json(users);
-      });
-    });
-
-  apiRouter.route('/users/:user_id')
-    // GET /api/users/:user_id
-    .get(function (req, res) {
-      User.findById(req.params.user_id, function (err, user) {
+  apiRouter.route('/users/:userId')
+    // GET /api/users/:userId
+    .get([
+      requireAuthentication,
+      requireSamePerson
+    ], function (req, res) {
+      User.findById(req.params.userId, function (err, user) {
         if (err) {
           return res.send(err);
         }
         res.json(user);
       });
     })
-    // PUT /api/users/:user_id
-    .put(function (req, res) {
-      User.findById(req.params.user_id, function (err, user) {
+    // PUT /api/users/:userId
+    .put([
+      requireAuthentication,
+      requireAdminPermission
+    ], function (req, res) {
+      User.findById(req.params.userId, function (err, user) {
         if (err) {
           return res.send(err);
         }
@@ -85,9 +95,13 @@ module.exports.manipulateUserRoute = function (apiRouter) {
         });
       });
     })
-    // DELETE /api/users/:user_id
-    .delete(function (req, res) {
-      User.remove({ _id: req.params.user_id }, function (err, user) {
+    // DELETE /api/users/:userId
+    .delete([
+      requireAuthentication,
+      requireAdminPermission,
+      requireVariousPerson
+    ], function (req, res) {
+      User.remove({ _id: req.params.userId }, function (err, user) {
         if (err) {
           return res.send(err);
         }

@@ -1,24 +1,20 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const bcrypt = require('bcrypt-nodejs');
-// const Deck = require('./deck');
 
 var userSchema = new Schema({
-  // _id: Schema.Types.ObjectId,
   name: {
     type: String,
     required: true
   },
   username: {
     type: String,
-    required: true,
     index: {
       unique: true
     }
   },
   password: {
     type: String,
-    required: true,
     select: false
   },
   email: String,
@@ -30,10 +26,7 @@ var userSchema = new Schema({
     type: String,
     default: 'user'
   },
-  // decks: [{
-  //   type: Schema.Types.ObjectId,
-  //   ref: 'Deck'
-  // }]
+  googleId: String
 });
 
 userSchema.pre('save', function (next) {
