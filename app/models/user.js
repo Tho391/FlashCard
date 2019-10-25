@@ -9,9 +9,9 @@ var userSchema = new Schema({
   },
   username: {
     type: String,
-    index: {
-      unique: true
-    }
+    //index: {
+      //unique: true
+    //}
   },
   password: {
     type: String,
